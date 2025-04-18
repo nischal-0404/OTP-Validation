@@ -21,6 +21,56 @@ function OTP() {
     }
   };
 
+  const handleKeyUp = (e, index) => {
+    const isKey = e.key;
+    console.log(isKey);
+
+    // When user press backspace key it clears the current input and shifts focus back to previous input
+    if (isKey === "Backspace" && index > 0) {
+      const newOtp = [...otp];
+      newOtp[index] = "";
+      setOtp(newOtp);
+      inputRef.current[index - 1].focus();
+    }
+
+    //Shifts foucs left when press arrowKey right
+    if (isKey === "ArrowLeft" && index > 0) {
+      inputRef.current[index - 1].focus();
+    }
+    //Shifts foucs left when press arrowKey left
+    if (isKey === "ArrowRight" && index < 5) {
+      inputRef.current[index + 1].focus();
+    }
+  };
+
+  const handlePaste = (e, index) => {
+    e.preventDefault();
+    const copiedData = e.clipboardData.getData("text");
+    console.log(copiedData);
+
+    // Filter out any non-numberic data
+    const copiedDigits = copiedData.replace(/\D/g, "");
+    if (!copiedDigits) return;
+
+    console.log(copiedData);
+    const newOtp = [...otp];
+
+    for (let i = 0; i < copiedDigits.length && index + i < 5; i++) {
+      newOtp[index + i] = copiedDigits[i];
+    }
+    setOtp(newOtp);
+    const focusIndex = Math.min(index + copiedDigits.length, 5);
+    inputRef.current[focusIndex]?.focus();
+  };
+
+  const handleClick = () => {
+    const optValue = otp.join("");
+    if (optValue.length === 5) {
+      alert("Otp submitted successfully.");
+    } else {
+      alert("Incomplete OTP digits.");
+    }
+  };
   return (
     <div className="border p-[2.2rem] rounded  shadow-xl">
       <div>
@@ -29,7 +79,6 @@ function OTP() {
         </h2>
         <div className="space-x-[.8rem] mt-[1rem]">
           {otp.map((digit, index) => {
-            console.log(digit);
             return (
               <input
                 type="text"
@@ -39,6 +88,14 @@ function OTP() {
                 }}
                 key={index}
                 maxLength={1}
+                onPaste={(event) => {
+                  // paste eventlistener
+                  handlePaste(event, index);
+                }}
+                onKeyUp={(event) => {
+                  // which key pressed listener
+                  handleKeyUp(event, index);
+                }}
                 onChange={(event) => {
                   handleChange(event, index);
                 }}
@@ -50,7 +107,10 @@ function OTP() {
       </div>
 
       <div className="mt-[1rem] text-center ">
-        <button className="h-[3rem] w-full text-[1.1rem] bg-purple-500 rounded font-semibold text-white  ">
+        <button
+          className="h-[3rem] w-full text-[1.1rem] bg-purple-500 rounded font-semibold text-white shadow-sm "
+          onClick={handleClick}
+        >
           Submit
         </button>
       </div>
